@@ -1,0 +1,860 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>New Angeles | Artist Portfolio</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@800&family=Inter:wght@300;400;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg-color: #050505;
+      --text-color: #f4f4f4;
+      --accent: #555;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* --- Navigation & Menu --- */
+    .menu-toggle {
+      position: fixed;
+      top: 1.5rem;
+      right: 1.5rem;
+      z-index: 100;
+      background: transparent;
+      border: none;
+      color: var(--text-color);
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      cursor: pointer;
+      mix-blend-mode: difference;
+      transition: transform 0.3s ease;
+      padding: 0.5rem;
+    }
+
+    .menu-toggle:hover {
+      transform: scale(1.1);
+    }
+
+    .menu-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100vh; /* Fallback */
+      height: 100dvh;
+      background: #0a0a0a;
+      z-index: 90;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      clip-path: circle(0% at calc(100% - 2.5rem) 2.5rem);
+      transition: clip-path 1.2s cubic-bezier(0.86, 0, 0.07, 1);
+    }
+
+    .menu-overlay.open {
+      clip-path: circle(150% at calc(100% - 2.5rem) 2.5rem);
+    }
+
+    .menu-nav {
+      display: flex;
+      flex-direction: column;
+      gap: clamp(1.5rem, 5vh, 2.5rem);
+      text-align: center;
+      padding: 1rem;
+    }
+
+    .menu-nav a {
+      color: var(--text-color);
+      text-decoration: none;
+      font-size: clamp(2rem, 8vw, 4rem);
+      font-weight: 300;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+
+      opacity: 0;
+      transform: translateY(30px) rotate(2deg);
+      transition: opacity 0s 0.8s, transform 0s 0.8s, color 0.3s ease;
+    }
+
+    .menu-overlay.open .menu-nav a {
+      opacity: 1;
+      transform: translateY(0) rotate(0deg);
+      transition: transform 1s cubic-bezier(0.16, 1, 0.3, 1), opacity 1s ease, color 0.3s ease;
+    }
+
+    .menu-nav a:hover {
+      color: var(--accent);
+    }
+
+    .menu-overlay.open .menu-nav a:nth-child(1) { transition-delay: 0.3s; }
+    .menu-overlay.open .menu-nav a:nth-child(2) { transition-delay: 0.4s; }
+    .menu-overlay.open .menu-nav a:nth-child(3) { transition-delay: 0.5s; }
+    .menu-overlay.open .menu-nav a:nth-child(4) { transition-delay: 0.6s; }
+
+    /* --- Hero Section --- */
+    .hero {
+      position: relative;
+      height: 100vh; /* Fallback */
+      height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      /* Subtle fallback gradient shown instantly while the WebGL shader downloads */
+      background: radial-gradient(circle at center, #1a1a1a 0%, var(--bg-color) 100%);
+    }
+
+    .shader-wrapper {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+      -webkit-mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+    }
+
+    shader-art {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* --- Audio Visualizer --- */
+    .audio-visualizer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      opacity: 0;
+      transition: opacity 1s ease;
+      pointer-events: none;
+    }
+
+    .audio-visualizer.active {
+      opacity: 1;
+    }
+
+    shader-art canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      text-align: center;
+      mix-blend-mode: difference;
+      padding: 0 1rem;
+      width: 100%;
+      /* Removed the 600px max-width so the text can stretch on desktop */
+    }
+
+    .hero-content h1 {
+      /* Added Arial Black and Impact as heavy fallbacks while Syne loads */
+      font-family: 'Syne', 'Arial Black', Impact, sans-serif;
+      font-size: clamp(2.5rem, 8vw, 6rem);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      text-transform: uppercase;
+      margin-bottom: clamp(1.5rem, 4vh, 2rem);
+      line-height: 1;
+    }
+
+    .code-input-container {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap; /* Allows stacking on extremely thin screens */
+    }
+
+    .code-input {
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      color: white;
+      padding: 12px 20px;
+      font-size: 1rem; /* 16px explicitly prevents iOS Safari zoom */
+      letter-spacing: 0.1em;
+      outline: none;
+      transition: border-color 0.3s ease;
+      width: 100%;
+      max-width: 250px;
+      flex: 1 1 200px;
+    }
+
+    .code-input:focus {
+      border-color: #fff;
+    }
+
+    .code-btn {
+      background: white;
+      color: black;
+      border: none;
+      padding: 12px 24px;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background 0.3s ease;
+      flex: 0 0 auto;
+    }
+
+    .code-btn:hover {
+      background: #ccc;
+    }
+
+    /* --- Generic Section Layout --- */
+    section {
+      padding: clamp(4rem, 10vh, 8rem) clamp(1.5rem, 5vw, 2rem);
+      max-width: 1200px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 2;
+    }
+
+    .section-title {
+      font-size: 1rem;
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      color: var(--accent);
+      margin-bottom: clamp(2rem, 5vw, 3rem);
+      border-bottom: 1px solid #222;
+      padding-bottom: 1rem;
+    }
+
+    /* --- Scroll Animations --- */
+    .reveal {
+      opacity: 0;
+      transform: translateY(40px);
+      transition: opacity 1s cubic-bezier(0.2, 0.8, 0.2, 1), transform 1s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    .reveal.active {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* --- About Section --- */
+    .about-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: clamp(2rem, 5vw, 4rem);
+      align-items: center;
+    }
+
+    .about-text {
+      font-size: clamp(1.1rem, 2vw, 1.25rem);
+      line-height: 1.6;
+      font-weight: 300;
+      color: #ccc;
+    }
+
+    .about-text p {
+      margin-bottom: 1.5rem;
+    }
+
+    .about-image {
+      width: 100%;
+      aspect-ratio: 4/5;
+      background-color: #111;
+      background-size: cover;
+      background-position: center;
+      position: relative;
+      overflow: hidden;
+      filter: contrast(1.2);
+    }
+
+    /* --- Gallery Section --- */
+    .gallery {
+      display: grid;
+      /* Dynamic grid that never overflows the container on small devices */
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 350px), 1fr));
+      gap: clamp(1rem, 3vw, 2rem);
+    }
+
+    .gallery-item {
+      position: relative;
+      width: 100%;
+      height: clamp(350px, 50vw, 500px);
+      background-color: #111;
+      background-size: cover;
+      background-position: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      cursor: pointer;
+    }
+
+    .gallery-item::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      opacity: 0;
+      transition: opacity 0.4s ease;
+    }
+
+    .gallery-item:hover::after {
+      opacity: 1;
+    }
+
+    .gallery-item-title {
+      position: absolute;
+      z-index: 2;
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: clamp(1.2rem, 3vw, 1.5rem);
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.4s ease, transform 0.4s ease;
+      text-align: center;
+      padding: 0 1rem;
+    }
+
+    .gallery-item:hover .gallery-item-title {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* --- Exhibitions Section --- */
+    .exhibition-list {
+      list-style: none;
+      border-top: 1px solid #222;
+    }
+
+    .exhibition-list li {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: clamp(1.5rem, 3vw, 2.5rem) 0;
+      border-bottom: 1px solid #222;
+      font-size: clamp(0.9rem, 2vw, 1.1rem);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      transition: color 0.3s ease;
+    }
+
+    .exhibition-list li:hover {
+      color: #fff;
+      background-color: rgba(255, 255, 255, 0.02);
+    }
+
+    .exhibition-list .date {
+      color: var(--accent);
+      width: 20%;
+    }
+
+    .exhibition-list .venue {
+      width: 50%;
+      font-weight: bold;
+    }
+
+    .exhibition-list .location {
+      width: 30%;
+      text-align: right;
+      color: #888;
+    }
+
+    /* --- Footer / Contact --- */
+    .footer {
+      padding-bottom: clamp(6rem, 15vh, 8rem);
+    }
+
+    .footer-links {
+      display: flex;
+      flex-direction: row;
+      gap: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .footer a {
+      color: var(--text-color);
+      text-decoration: none;
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: clamp(1.5rem, 4vw, 2rem);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      transition: color 0.3s ease;
+    }
+
+    .footer a:hover {
+      color: var(--accent);
+    }
+
+    /* --- Explicit Mobile Overrides --- */
+    @media (max-width: 768px) {
+      .about-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .exhibition-list li {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+      }
+
+      .exhibition-list .date,
+      .exhibition-list .venue,
+      .exhibition-list .location {
+        width: 100%;
+        text-align: left;
+      }
+
+      .footer-links {
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      /* Make gallery titles visible by default on touch screens */
+      @media (hover: none) {
+        .gallery-item::after { opacity: 0.3; }
+        .gallery-item-title { opacity: 1; transform: translateY(0); }
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Fixed Navigation -->
+  <button class="menu-toggle" id="menuToggle">Menu</button>
+
+  <nav class="menu-overlay" id="menuOverlay">
+    <div class="menu-nav">
+      <a href="#home" class="menu-link">Domů</a>
+      <a href="#movement" class="menu-link">Movement</a>
+      <a href="#about" class="menu-link">O nás</a>
+      <a href="#contact" class="menu-link">Kontakt & Hudba</a>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <header class="hero" id="home">
+    <div class="shader-wrapper">
+      <shader-art autoplay>
+        <script type="buffer" name="position" data-size="2">
+          [-1, 1, -1,-1, 1,1, 1, 1, -1,-1, 1,-1]
+        </script>
+        <script type="buffer" name="uv" data-size="2">
+          [ 0, 0,  0, 1, 1,0, 1, 0,  0, 1, 1, 1]
+        </script>
+
+        <script type="vert">
+          precision highp float;
+          attribute vec4 position;
+          attribute vec2 uv;
+          varying vec2 vUv;
+          void main() {
+            vUv = uv;
+            gl_Position = position;
+          }
+        </script>
+        <script type="frag">
+          precision highp float;
+          varying vec2 vUv;
+
+          uniform float time;
+          uniform vec2 resolution;
+
+          const float scale = 0.4;
+          const float ax = 5.0;
+          const float ay = 7.0;
+          const float az = 9.0;
+          const float aw = 13.0;
+          const float bx = 1.0;
+          const float by = 1.0;
+
+          const vec3 color1 = vec3(1.0, 1.0, 1.0);
+          const vec3 color2 = vec3(0.7, 0.7, 0.7);
+          const vec3 color3 = vec3(0.3, 0.3, 0.3);
+          const vec3 color4 = vec3(0.1, 0.1, 0.1);
+
+          float cheapNoise(vec3 stp) {
+            vec3 p = vec3(stp.st, stp.p);
+            vec4 a = vec4(ax, ay, az, aw);
+            return mix(
+              sin(p.z + p.x * a.x + cos(p.x * a.x - p.z)) * cos(p.z + p.y * a.y + cos(p.y * a.x + p.z)),
+              sin(1.0 + p.x * a.z + p.z + cos(p.y * a.w - p.z)) * cos(1.0 + p.y * a.w + p.z + cos(p.x * a.x + p.z)),
+              0.436
+            );
+          }
+
+          void main() {
+            vec2 aR = vec2(resolution.x/resolution.y, 1.0);
+            vec2 st = vUv * aR * scale;
+            float S = sin(time * 0.005);
+            float C = cos(time * 0.005);
+
+            vec2 v1 = vec2(cheapNoise(vec3(st, 2.0)), cheapNoise(vec3(st, 1.0)));
+            vec2 v2 = vec2(
+              cheapNoise(vec3(st + bx * v1 + vec2(C * 1.7, S * 9.2), 0.15 * time)),
+              cheapNoise(vec3(st + by * v1 + vec2(S * 8.3, C * 2.8), 0.126 * time))
+            );
+
+            float n = 0.5 + 0.5 * cheapNoise(vec3(st + v2, 0.0));
+
+            vec3 color = mix(color1, color2, clamp((n * n) * 8.0, 0.0, 1.0));
+            color = mix(color, color3, clamp(length(v1), 0.0, 1.0));
+            color = mix(color, color4, clamp(length(v2.x), 0.0, 1.0));
+
+            color /= n * n + n * 7.0;
+            gl_FragColor = vec4(color, 1.0);
+          }
+        </script>
+      </shader-art>
+    </div>
+    
+    <canvas id="audioVisualizer" class="audio-visualizer"></canvas>
+
+    <div class="hero-content reveal">
+      <h1>New Angeles</h1>
+      <div class="code-input-container">
+        <input type="text" class="code-input" placeholder="ACCESS CODE" autocomplete="off">
+        <button class="code-btn">Enter</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Movement / Info Section -->
+  <section id="movement">
+    <h2 class="section-title reveal">01. Movement</h2>
+    <div class="reveal" style="font-family: 'Syne', sans-serif; font-size: clamp(1.5rem, 4vw, 2.5rem); font-weight: 800; line-height: 1.2; text-transform: uppercase; max-width: 900px;">
+      Od nových umělců pro nový svět.<br><br>
+      Je 1:58 ráno. Procházíte prázdnými ulicemi velkoměsta New Angeles a vše jde stranou. Poslouchejte, a staňte se součástí příběhu.<br><br>
+      <span style="color: var(--accent);">Nechte se provést zákoutími New Angeles. Objevte sílu jednotlivce a originality každého z nás.</span>
+    </div>
+  </section>
+
+<!-- About Section -->
+  <section id="about">
+    <h2 class="section-title reveal">02. O nás</h2>
+    <div class="about-grid">
+      <div class="about-text reveal">
+        <p>Jsme kolektiv umělců z celé republiky i ze zahraničí. Skupinu založil zpěvák a producent Kefry s vizí vytvořit umělecký movement, který otřese současnou scénou.</p>
+        <p>Přinášíme do průmyslu nové tváře, neotřelé nápady a umělecké inovace. Zastřešujeme řadu menších projektů, jejichž absolutním vrcholem je vydání stejnojmenného hudebního alba.</p>
+        
+        <!-- Kefry Info Block -->
+        <div style="margin-top: 2.5rem; border-left: 2px solid var(--accent); padding-left: 1.5rem;">
+          <h3 style="font-family: 'Syne', sans-serif; font-size: 1.5rem; text-transform: uppercase; margin-bottom: 0.5rem; letter-spacing: 0.05em;">Kefry</h3>
+          <p style="color: #888; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.1em; margin: 0;">
+            20 let / Zpěvák, Producent, Písničkář, Tanečník<br>
+            <span style="color: #fff;">Main Angel</span>
+          </p>
+        </div>
+      </div>
+      <div class="about-image reveal" style="background-image: url('img/skater.png'); grayscale(100%); transition-delay: 0.1s;"></div>
+    </div>
+  </section>
+
+  <!-- Footer / Contact & Music Section -->
+  <section id="contact" class="footer reveal">
+    <h2 class="section-title" style="margin-bottom: clamp(2rem, 5vw, 4rem); text-align: left;">03. Kontakt & Streams</h2>
+    
+    <div style="display: flex; flex-wrap: wrap; gap: clamp(3rem, 10vw, 8rem); text-align: left;">
+      
+      <!-- Contact Column -->
+      <div style="display: flex; flex-direction: column; min-width: 250px;">
+        <h3 style="color: var(--accent); text-transform: uppercase; letter-spacing: 0.2em; font-size: 0.9rem; margin-bottom: 1.5rem;">New Angeles Crew</h3>
+        <div style="display: flex; flex-direction: column; gap: 1rem;">
+          <a href="/cdn-cgi/l/email-protection#a1cbc0cac4c9cdd4c3d4e1c6ccc0c8cd8fc2cecc" style="font-size: clamp(1.2rem, 3vw, 1.5rem);">Booking & Email</a>
+          <a href="https://instagram.com/kefry_" style="font-size: clamp(1.2rem, 3vw, 1.5rem);">IG: @kefry_</a>
+          <a href="https://instagram.com/kefry_music" style="font-size: clamp(1.2rem, 3vw, 1.5rem);">IG: @kefry_music</a>
+          <a href="#" style="font-size: clamp(1.2rem, 3vw, 1.5rem);">TikTok</a>
+          <a href="#" style="font-size: clamp(1.2rem, 3vw, 1.5rem);">Facebook</a>
+        </div>
+      </div>
+
+      <!-- Music Column -->
+      <div style="display: flex; flex-direction: column; min-width: 250px;">
+        <h3 style="color: var(--accent); text-transform: uppercase; letter-spacing: 0.2em; font-size: 0.9rem; margin-bottom: 1.5rem;">Hudba</h3>
+        <div style="display: flex; flex-direction: column; gap: 1rem;">
+          <a href="#" style="font-size: clamp(1.2rem, 3vw, 1.5rem);">Spotify</a>
+          <a href="#" style="font-size: clamp(1.2rem, 3vw, 1.5rem);">Apple Music</a>
+          <a href="#" style="font-size: clamp(1.2rem, 3vw, 1.5rem);">YouTube</a>
+          <a href="#" style="font-size: clamp(1.2rem, 3vw, 1.5rem); color: var(--accent);">Další platformy</a>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+      <img src="img/cold_af.jpg" alt="poster" style="object-fit:contain; width: 100vw;">
+
+  <script data-cfasync="false" src="cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script type="module">
+    import { ShaderArt } from 'https://esm.sh/shader-art';
+
+    ShaderArt.register();
+
+    // --- Audio API and Visualizer Logic ---
+    const codeInput = document.querySelector('.code-input');
+    const codeBtn = document.querySelector('.code-btn');
+    const visualizerCanvas = document.getElementById('audioVisualizer');
+    const ctx = visualizerCanvas ? visualizerCanvas.getContext('2d') : null;
+
+    let audioContext;
+    let analyser;
+    let source;
+    let animationId;
+
+    if (visualizerCanvas) {
+      const resizeCanvas = () => {
+        visualizerCanvas.width = window.innerWidth;
+        visualizerCanvas.height = window.innerHeight;
+      };
+      window.addEventListener('resize', resizeCanvas);
+      resizeCanvas();
+    }
+
+    async function handleCodeSubmit() {
+      if (!codeInput || !codeBtn) return;
+
+      const code = codeInput.value.trim();
+      if (!code) return;
+
+      codeBtn.disabled = true;
+      codeBtn.textContent = 'VERIFYING...';
+
+      try {
+        const response = await fetch('api/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code })
+        });
+
+        if (response.ok) {
+          codeBtn.textContent = 'ACCESS GRANTED';
+          codeInput.style.display = 'none';
+          codeBtn.style.display = 'none';
+
+          const h1 = document.querySelector('.hero-content h1');
+          if (h1) h1.textContent = 'CONNECTING...';
+
+          const blob = await response.blob();
+          const audioUrl = URL.createObjectURL(blob);
+          playAudio(audioUrl);
+        } else if (response.status === 401) {
+          codeBtn.textContent = 'INVALID CODE';
+          setTimeout(() => {
+            codeBtn.textContent = 'ENTER';
+            codeBtn.disabled = false;
+          }, 2000);
+        } else {
+          throw new Error(`Server error: ${response.status}`);
+        }
+      } catch (error) {
+        console.error(error);
+        codeBtn.textContent = 'ERROR';
+        setTimeout(() => {
+          codeBtn.textContent = 'ENTER';
+          codeBtn.disabled = false;
+        }, 2000);
+      }
+    }
+
+    if (codeBtn) {
+      codeBtn.addEventListener('click', handleCodeSubmit);
+    }
+    if (codeInput) {
+      codeInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') handleCodeSubmit();
+      });
+    }
+
+    function playAudio(url) {
+      const isBlobUrl = url.startsWith('blob:');
+      const audio = new Audio(url);
+      audio.crossOrigin = "anonymous";
+      
+      const h1 = document.querySelector('.hero-content h1');
+      
+      // We need to handle audio context properly on user interaction
+      if (!audioContext) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      
+      analyser = audioContext.createAnalyser();
+      analyser.fftSize = 256;
+      
+      source = audioContext.createMediaElementSource(audio);
+      source.connect(analyser);
+      analyser.connect(audioContext.destination);
+      
+      audio.addEventListener('canplay', () => {
+        audio.play().catch(e => console.error("Audio playback failed:", e));
+        if (visualizerCanvas) {
+          visualizerCanvas.classList.add('active');
+        }
+        if (h1) h1.textContent = 'SIGNAL ACQUIRED';
+        drawVisualizer();
+      });
+      
+      audio.addEventListener('ended', () => {
+        if (isBlobUrl) URL.revokeObjectURL(url);
+        if (visualizerCanvas) {
+          visualizerCanvas.classList.remove('active');
+        }
+        cancelAnimationFrame(animationId);
+        if (h1) h1.textContent = 'CONNECTION CLOSED';
+        setTimeout(() => {
+          if (h1) h1.textContent = 'NEW ANGELES';
+          codeInput.style.display = '';
+          codeBtn.style.display = '';
+          codeInput.value = '';
+          codeBtn.textContent = 'ENTER';
+          codeBtn.disabled = false;
+        }, 3000);
+      });
+    }
+
+    function drawVisualizer() {
+      animationId = requestAnimationFrame(drawVisualizer);
+      
+      if (!analyser || !ctx) return;
+      
+      const bufferLength = analyser.frequencyBinCount;
+      const dataArray = new Uint8Array(bufferLength);
+      analyser.getByteFrequencyData(dataArray);
+      
+      const width = visualizerCanvas.width;
+      const height = visualizerCanvas.height;
+      
+      ctx.clearRect(0, 0, width, height);
+      
+      let avgFreq = 0;
+      for (let i = 0; i < bufferLength; i++) {
+        avgFreq += dataArray[i];
+      }
+      avgFreq /= bufferLength;
+      
+      const waves = 4;
+      for (let j = 0; j < waves; j++) {
+        ctx.beginPath();
+        
+        // Start from left, slightly below center
+        const baseY = height * 0.6 + (j * 20); 
+        ctx.moveTo(0, baseY);
+        
+        const amplitude = (avgFreq / 255) * (height * 0.3) + 20; 
+        const frequency = 0.005 + (j * 0.002);
+        const phase = (Date.now() * 0.001) + (j * Math.PI / 2);
+        
+        for (let i = 0; i <= width + 10; i += 10) {
+          const dataIndex = Math.floor((i / width) * (bufferLength * 0.8)); // avoid very high freq
+          const dataVal = dataArray[dataIndex] / 255;
+          
+          const y = baseY + 
+                    Math.sin(i * frequency + phase) * amplitude * (0.3 + dataVal * 1.5) +
+                    Math.cos(i * frequency * 2.5 - phase) * (amplitude * 0.2);
+                    
+          ctx.lineTo(i, y);
+        }
+        
+        ctx.lineTo(width, height);
+        ctx.lineTo(0, height);
+        ctx.closePath();
+        
+        const gradient = ctx.createLinearGradient(0, height * 0.4, 0, height);
+        gradient.addColorStop(0, `rgba(255, 255, 255, ${0.05 + j * 0.05})`);
+        gradient.addColorStop(0.5, `rgba(100, 100, 100, ${0.1 + j * 0.1})`);
+        gradient.addColorStop(1, 'rgba(0, 0, 0, 0.9)');
+        
+        ctx.fillStyle = gradient;
+        ctx.fill();
+        
+        ctx.strokeStyle = `rgba(255, 255, 255, ${0.1 + j * 0.15})`;
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+      }
+    }
+
+    // --- Menu Logic ---
+    const menuToggle = document.getElementById('menuToggle');
+    const menuOverlay = document.getElementById('menuOverlay');
+    const menuLinks = document.querySelectorAll('.menu-link');
+
+    menuToggle.addEventListener('click', () => {
+      menuOverlay.classList.toggle('open');
+      menuToggle.textContent = menuOverlay.classList.contains('open') ? 'Close' : 'Menu';
+
+      // Lock scrolling when menu is open
+      document.body.style.overflow = menuOverlay.classList.contains('open') ? 'hidden' : '';
+    });
+
+    menuLinks.forEach(link => {
+      link.addEventListener('click', () => {
+        menuOverlay.classList.remove('open');
+        menuToggle.textContent = 'Menu';
+        document.body.style.overflow = '';
+      });
+    });
+
+    // --- Scroll Reveal Logic ---
+    const revealElements = document.querySelectorAll('.reveal');
+    const revealOptions = {
+      threshold: 0.1,
+      rootMargin: "0px 0px -30px 0px"
+    };
+
+    const revealOnScroll = new IntersectionObserver(function(entries, observer) {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting) {
+          return;
+        } else {
+          entry.target.classList.add('active');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, revealOptions);
+
+    revealElements.forEach(el => {
+      revealOnScroll.observe(el);
+    });
+
+    // Trigger reveal for elements immediately in viewport on load
+    window.addEventListener('load', () => {
+      // Trigger hero reveal immediately, without waiting for images to download
+      const heroContent = document.querySelector('.hero-content');
+      if (heroContent) {
+        // requestAnimationFrame ensures the browser has parsed the CSS before animating
+        requestAnimationFrame(() => {
+          heroContent.classList.add('active');
+        });
+      }
+    });
+  </script>
+</body>
+</html>
